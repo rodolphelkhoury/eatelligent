@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('body_compositions', function (Blueprint $table) {
             $table->id();
-            
+
             $table->foreignId('user_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->decimal('weight_kg', 5, 2);
             $table->decimal('height_cm', 5, 2);
