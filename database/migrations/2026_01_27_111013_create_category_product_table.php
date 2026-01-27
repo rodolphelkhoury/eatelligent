@@ -12,12 +12,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('product_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->foreignId('category_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->unique(['product_id', 'category_id']);
         });

@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('wallet_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->foreignId('order_id')
-                  ->nullable()
-                  ->constrained()
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
             $table->decimal('amount', 12, 2);
             $table->string('type');
