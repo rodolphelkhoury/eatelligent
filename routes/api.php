@@ -10,5 +10,8 @@ Route::post('/user/login', [UserController::class, 'loginUser']);
 Route::post('/admin/register', [AdminController::class, 'registerAdmin']);
 Route::post('/admin/login', [AdminController::class, 'loginAdmin']);
 
-// Route::middleware('auth:sanctum')->get('/user', function () {
-// });
+// User authenticated routes
+Route::middleware('auth:sanctum-user')->group(function () {});
+
+// Admin authenticated routes
+Route::middleware('auth:sanctum-admin')->group(function () {});
