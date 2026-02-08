@@ -29,6 +29,9 @@ Route::middleware([AuthenticateAdmin::class])->group(function () {
         Route::post('/', [CategoryController::class, 'store']);
         Route::put('/{category}', [CategoryController::class, 'update']);
         Route::delete('/{category}', [CategoryController::class, 'destroy']);
+
+        Route::post('/{category}/attach-products', [CategoryController::class, 'attachProducts']);
+        Route::post('/{category}/detach-products', [CategoryController::class, 'detachProducts']);
     });
 
     Route::prefix('products')->group(function () {
@@ -37,6 +40,9 @@ Route::middleware([AuthenticateAdmin::class])->group(function () {
         Route::post('/', [ProductController::class, 'store']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
+
+        Route::post('/{product}/attach-categories', [ProductController::class, 'attachCategories']);
+        Route::post('/{product}/detach-categories', [ProductController::class, 'detachCategories']);
     });
 
 });
