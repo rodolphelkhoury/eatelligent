@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -111,5 +112,50 @@ class CategoryCrudTest extends TestCase
             ->assertJsonPath('message', 'Category deleted successfully');
 
         $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
+
+    public function test_attach_products_to_category(): void
+    {
+        $category = Category::factory()->create();
+        $products = Product::factory()->count(3)->create();
+
+        $response = $this->postJson("/api/categories/{$category->id}/attach-products", [
+            'product_ids' => $products->pluck('id')->toArray(),
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('category.products.0.id', $products[0]->id);
+
+        foreach ($products as $product) {
+            $this->assertDatabaseHas('category_product', [
+                'category_id' => $category->id,
+                'product_id' => $product->id,
+            ]);
+        }
+    }
+
+    public function test_detach_products_from_category(): void
+    {
+        $category = Category::factory()->create();
+        $products = Product::factory()->count(2)->create();
+
+        $category->products()->attach($products->pluck('id'));
+
+        $response = $this->postJson("/api/categories/{$category->id}/detach-products", [
+            'product_ids' => [$products[0]->id],
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'category.products');
+
+        $this->assertDatabaseMissing('category_product', [
+            'category_id' => $category->id,
+            'product_id' => $products[0]->id,
+        ]);
+
+        $this->assertDatabaseHas('category_product', [
+            'category_id' => $category->id,
+            'product_id' => $products[1]->id,
+        ]);
     }
 }

@@ -26,7 +26,6 @@ jobs:
       run: ./vendor/bin/pint --test
 
   tests:
-    needs: pint
     runs-on: ubuntu-latest
 
     services:
