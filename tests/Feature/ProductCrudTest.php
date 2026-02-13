@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Admin;
+use App\Models\CafeteriaStaff;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,8 +17,9 @@ class ProductCrudTest extends TestCase
     {
         parent::setUp();
 
-        $admin = Admin::factory()->create();
-        Sanctum::actingAs($admin, [], 'sanctum-admin');
+        $staff = CafeteriaStaff::factory()->create();
+
+        Sanctum::actingAs($staff, [], 'sanctum-cafeteria-staff');
     }
 
     public function test_create_product_success(): void
