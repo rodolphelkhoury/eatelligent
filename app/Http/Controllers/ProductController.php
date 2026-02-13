@@ -6,6 +6,7 @@ use App\Http\Requests\Product\AttachCategoriesRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -16,21 +17,21 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        return response()->json($product, 200);
+        return response()->json($product->load('categories'), 200);
     }
 
     public function store(StoreProductRequest $request)
     {
         $product = Product::create($request->validated());
 
-        return response()->json($product, 201);
+        return response()->json($product->load('categories'), 201);
     }
 
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->validated());
 
-        return response()->json($product, 200);
+        return response()->json($product->load('categories'), 200);
     }
 
     public function destroy(Product $product)
@@ -62,5 +63,28 @@ class ProductController extends Controller
             'message' => 'Categories removed successfully',
             'product' => $product->load('categories'),
         ], 200);
+    }
+
+    public function browseProducts(Request $request)
+    {
+        $query = Product::query()->where('is_active', true);
+
+        if ($request->filled('category_id')) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('categories.id', $request->category_id);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->with('categories')->get();
+
+        return response()->json($products, 200);
     }
 }

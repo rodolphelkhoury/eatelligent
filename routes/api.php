@@ -22,7 +22,12 @@ Route::post('/cafeteria-staff/login', [CafeteriaStaffController::class, 'loginCa
 Route::middleware([AuthenticateUser::class])->group(function () {
     Route::post('/user/verify-email', [UserController::class, 'verifyEmail']);
 
-    Route::middleware([EmailVerified::class])->group(function () {});
+    Route::middleware([EmailVerified::class])->group(function () {
+        Route::prefix('user')->group(function () {
+            Route::get('/products', [ProductController::class, 'browseProducts']);
+            Route::get('/products/{product}', [ProductController::class, 'show']);
+        });
+    });
 });
 
 Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
