@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AuthenticateAdmin;
+use App\Http\Middleware\AuthenticateCafeteriaStaff;
 use App\Http\Middleware\AuthenticateUser;
 use App\Http\Middleware\EmailVerified;
 use Illuminate\Support\Facades\Route;
@@ -15,13 +17,15 @@ Route::post('/user/login', [UserController::class, 'loginUser']);
 Route::post('/admin/register', [AdminController::class, 'registerAdmin']);
 Route::post('/admin/login', [AdminController::class, 'loginAdmin']);
 
+Route::post('/cafeteria-staff/login', [CafeteriaStaffController::class, 'loginCafeteriaStaff']);
+
 Route::middleware([AuthenticateUser::class])->group(function () {
     Route::post('/user/verify-email', [UserController::class, 'verifyEmail']);
 
     Route::middleware([EmailVerified::class])->group(function () {});
 });
 
-Route::middleware([AuthenticateAdmin::class])->group(function () {
+Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
 
     Route::prefix('categories')->group(function () {
         Route::get('/', [CategoryController::class, 'index']);
@@ -46,3 +50,5 @@ Route::middleware([AuthenticateAdmin::class])->group(function () {
     });
 
 });
+
+Route::middleware([AuthenticateAdmin::class])->group(function () {});
