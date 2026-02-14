@@ -24,7 +24,8 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->decimal('amount', 12, 2);
-            $table->string('type');
+            $table->string('stripe_session_id')->nullable()->unique();
+            $table->string('status')->nullable();
 
             $table->timestamps();
         });

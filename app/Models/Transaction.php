@@ -15,7 +15,8 @@ class Transaction extends Model
         'wallet_id',
         'order_id',
         'amount',
-        'type',
+        'stripe_session_id',
+        'status',
     ];
 
     /**
