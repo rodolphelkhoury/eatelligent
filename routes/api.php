@@ -5,11 +5,14 @@ use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Middleware\AuthenticateCafeteriaStaff;
 use App\Http\Middleware\AuthenticateUser;
 use App\Http\Middleware\EmailVerified;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/stripe/webhook', [WalletController::class, 'webhook']);
 
 Route::post('/user/register', [UserController::class, 'registerUser']);
 Route::post('/user/login', [UserController::class, 'loginUser']);
@@ -27,6 +30,8 @@ Route::middleware([AuthenticateUser::class])->group(function () {
             Route::get('/products', [ProductController::class, 'browseProducts']);
             Route::get('/products/{product}', [ProductController::class, 'show']);
         });
+
+        Route::post('/wallet/checkout', [WalletController::class, 'checkout']);
     });
 });
 
