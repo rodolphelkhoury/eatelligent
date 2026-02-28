@@ -21,7 +21,7 @@ class UserController extends Controller
         ]);
 
         $otp = $user->generateOtp();
-        Mail::queue(new SendOtpMail($user, $otp));
+        Mail::send(new SendOtpMail($user, $otp));
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
