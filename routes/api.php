@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
@@ -29,6 +30,7 @@ Route::middleware([AuthenticateUser::class])->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/products', [ProductController::class, 'browseProducts']);
             Route::get('/products/{product}', [ProductController::class, 'show']);
+            Route::post('/orders', [OrderController::class, 'store']);
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);
