@@ -30,6 +30,7 @@ Route::middleware([AuthenticateUser::class])->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/products', [ProductController::class, 'browseProducts']);
             Route::get('/products/{product}', [ProductController::class, 'show']);
+            Route::get('/orders', [OrderController::class, 'index']);
             Route::post('/orders', [OrderController::class, 'store']);
         });
 

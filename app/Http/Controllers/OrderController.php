@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
+use App\Http\Requests\Order\IndexOrderRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -43,7 +45,7 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'status' => 'pending',
+                'status' => OrderStatus::Pending->value,
                 'scheduled_time' => $scheduledTime,
                 'total_price' => $total,
             ]);
@@ -75,5 +77,23 @@ class OrderController extends Controller
 
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+    public function index(IndexOrderRequest $request)
+    {
+        $user = $request->user();
+
+        $query = Order::with('orderItems.product')
+            ->where('user_id', $user->id);
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $orders = $query
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($orders);
     }
 }
