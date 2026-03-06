@@ -32,6 +32,7 @@ Route::middleware([AuthenticateUser::class])->group(function () {
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);
+        Route::get('/wallet', [WalletController::class, 'show']);
     });
 });
 

@@ -173,4 +173,102 @@ class WalletStripeTest extends TestCase
             'balance' => 0,
         ]);
     }
+
+    /** @test */
+    public function user_can_view_wallet_with_existing_balance()
+    {
+        $user = $this->user;
+
+        $wallet = Wallet::factory()->for($user)->create(['balance' => 250.50]);
+
+        $response = $this->getJson('/api/wallet');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['balance'])
+            ->assertJson([
+                'balance' => 250.50,
+            ]);
+    }
+
+    /** @test */
+    public function user_can_view_wallet_when_no_wallet_exists()
+    {
+        $response = $this->getJson('/api/wallet');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['balance'])
+            ->assertJson([
+                'balance' => 0,
+            ]);
+    }
+
+    /** @test */
+    public function different_users_have_separate_wallets()
+    {
+        $user1 = $this->user;
+        $wallet1 = Wallet::factory()->for($user1)->create(['balance' => 100]);
+
+        $user2 = User::factory()->create();
+        $wallet2 = Wallet::factory()->for($user2)->create(['balance' => 500]);
+
+        // First user checks their wallet
+        Sanctum::actingAs($user1, [], 'sanctum-user');
+        $response1 = $this->getJson('/api/wallet');
+        $response1->assertStatus(200)
+            ->assertJson(['balance' => 100]);
+
+        // Second user checks their wallet
+        Sanctum::actingAs($user2, [], 'sanctum-user');
+        $response2 = $this->getJson('/api/wallet');
+        $response2->assertStatus(200)
+            ->assertJson(['balance' => 500]);
+    }
+
+    /** @test */
+    public function wallet_balance_reflects_after_transaction_completion()
+    {
+        $user = $this->user;
+        $wallet = Wallet::factory()->for($user)->create(['balance' => 50]);
+
+        $transaction = Transaction::create([
+            'wallet_id' => $wallet->id,
+            'amount' => 75,
+            'stripe_session_id' => 'cs_test_456',
+            'status' => 'pending',
+        ]);
+
+        // Before webhook: balance should be 50
+        $response = $this->getJson('/api/wallet');
+        $response->assertStatus(200);
+        $this->assertEquals('50.00', $response->json('balance'));
+
+        // Process webhook
+        $payload = [
+            'type' => 'checkout.session.completed',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_test_456',
+                    'payment_status' => 'paid',
+                    'metadata' => [
+                        'wallet_id' => $wallet->id,
+                        'amount' => 75,
+                    ],
+                ],
+            ],
+        ];
+
+        $webhookResponse = $this->postJson('/api/stripe/webhook', $payload);
+        $webhookResponse->assertStatus(200);
+
+        // Verify transaction was updated
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'status' => 'completed',
+        ]);
+
+        // After webhook: balance should be 125
+        $response = $this->getJson('/api/wallet');
+        $response->assertStatus(200);
+        $this->assertEquals('125.00', $response->json('balance'));
+    }
 }

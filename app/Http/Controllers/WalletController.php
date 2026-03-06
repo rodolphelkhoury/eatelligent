@@ -24,6 +24,8 @@ class WalletController extends Controller
 
         $wallet = $user->wallet()->firstOrCreate([
             'user_id' => $user->id,
+        ], [
+            'balance' => 0,
         ]);
 
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -123,5 +125,19 @@ class WalletController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function show(Request $request)
+    {
+        $user = $request->user();
+        $wallet = $user->wallet()->firstOrCreate([
+            'user_id' => $user->id,
+        ], [
+            'balance' => 0,
+        ]);
+
+        return response()->json([
+            'balance' => $wallet ? $wallet->balance : 0,
+        ]);
     }
 }
