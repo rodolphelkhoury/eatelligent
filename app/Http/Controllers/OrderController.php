@@ -96,4 +96,73 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
+
+    public function staffIndex(IndexOrderRequest $request)
+    {
+        $query = Order::with('orderItems.product');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $orders = $query
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($orders);
+    }
+
+    public function confirm(Order $order)
+    {
+        if ($order->status === OrderStatus::Confirmed->value) {
+            return response()->json(['message' => 'Order already confirmed.'], 400);
+        }
+
+        if ($order->status !== OrderStatus::Pending->value) {
+            return response()->json(['message' => 'Only pending orders can be confirmed.'], 400);
+        }
+
+        $order->status = OrderStatus::Confirmed->value;
+        $order->save();
+
+        $order->load('orderItems.product');
+
+        return response()->json(['order' => $order]);
+    }
+
+    public function complete(Order $order)
+    {
+        if ($order->status === OrderStatus::Completed->value) {
+            return response()->json(['message' => 'Order already completed.'], 400);
+        }
+
+        if ($order->status !== OrderStatus::Confirmed->value) {
+            return response()->json(['message' => 'Only confirmed orders can be completed.'], 400);
+        }
+
+        $order->status = OrderStatus::Completed->value;
+        $order->save();
+
+        $order->load('orderItems.product');
+
+        return response()->json(['order' => $order]);
+    }
+
+    public function cancel(Order $order)
+    {
+        if ($order->status === OrderStatus::Cancelled->value) {
+            return response()->json(['message' => 'Order already cancelled.'], 400);
+        }
+
+        if ($order->status === OrderStatus::Completed->value) {
+            return response()->json(['message' => 'Completed orders cannot be cancelled.'], 400);
+        }
+
+        $order->status = OrderStatus::Cancelled->value;
+        $order->save();
+
+        $order->load('orderItems.product');
+
+        return response()->json(['order' => $order]);
+    }
 }
