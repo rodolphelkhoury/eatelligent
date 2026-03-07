@@ -63,6 +63,13 @@ Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
         Route::post('/{product}/detach-categories', [ProductController::class, 'detachCategories']);
     });
 
+    Route::prefix('cafeteria-staff')->group(function () {
+        Route::get('/orders', [OrderController::class, 'staffIndex']);
+        Route::patch('/orders/{order}/confirm', [OrderController::class, 'confirm']);
+        Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
+        Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
+    });
+
 });
 
 Route::middleware([AuthenticateAdmin::class])->group(function () {});
