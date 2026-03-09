@@ -11,6 +11,7 @@ use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Middleware\AuthenticateCafeteriaStaff;
 use App\Http\Middleware\AuthenticateUser;
 use App\Http\Middleware\EmailVerified;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/stripe/webhook', [WalletController::class, 'webhook']);
@@ -25,6 +26,10 @@ Route::post('/cafeteria-staff/login', [CafeteriaStaffController::class, 'loginCa
 
 Route::middleware([AuthenticateUser::class])->group(function () {
     Route::post('/user/verify-email', [UserController::class, 'verifyEmail']);
+
+    Route::get('/user', function (Request $request) {
+        return response()->json($request->user());
+    });
 
     Route::middleware([EmailVerified::class])->group(function () {
         Route::prefix('user')->group(function () {
