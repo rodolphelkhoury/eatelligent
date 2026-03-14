@@ -7,6 +7,7 @@ use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\VerifyUserEmail;
 use App\Mail\SendOtpMail;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -71,6 +72,24 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Email verified successfully.',
+        ]);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'Email already verified.',
+            ], 400);
+        }
+
+        $otp = $user->generateOtp();
+        Mail::send(new SendOtpMail($user, $otp));
+
+        return response()->json([
+            'message' => 'OTP resent successfully.',
         ]);
     }
 }

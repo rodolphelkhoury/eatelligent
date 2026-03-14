@@ -25,6 +25,7 @@ Route::post('/cafeteria-staff/login', [CafeteriaStaffController::class, 'loginCa
 
 Route::middleware([AuthenticateUser::class])->group(function () {
     Route::post('/user/verify-email', [UserController::class, 'verifyEmail']);
+    Route::post('/user/resend-otp', [UserController::class, 'resendOtp']);
 
     Route::middleware([EmailVerified::class])->group(function () {
         Route::prefix('user')->group(function () {
