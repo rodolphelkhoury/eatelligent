@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\PayOrder;
 use App\Http\Requests\User\LoginUserRequest;
 use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\VerifyUserEmail;
 use App\Mail\SendOtpMail;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -91,5 +93,34 @@ class UserController extends Controller
         return response()->json([
             'message' => 'OTP resent successfully.',
         ]);
+    }
+
+    public function payOrder(Request $request, Order $order, PayOrder $payOrder)
+    {
+        $user = $request->user();
+
+        try {
+            $transaction = $payOrder->execute($user, $order);
+
+            $order->load('orderItems.product');
+
+            return response()->json([
+                'message' => 'Order paid successfully.',
+                'order' => $order,
+                'transaction' => $transaction,
+            ]);
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+
+            if (str_contains($msg, 'Unauthorized')) {
+                return response()->json(['message' => $msg], 403);
+            }
+
+            if (str_contains($msg, 'Insufficient')) {
+                return response()->json(['message' => $msg], 400);
+            }
+
+            return response()->json(['message' => $msg], 400);
+        }
     }
 }
