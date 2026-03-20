@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
@@ -34,6 +35,7 @@ Route::middleware([AuthenticateUser::class])->group(function () {
             Route::get('/orders', [OrderController::class, 'index']);
             Route::post('/orders', [OrderController::class, 'store']);
             Route::post('/orders/{order}/pay', [UserController::class, 'payOrder']);
+            Route::post('/images', [ImageController::class, 'createImage']);
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);
@@ -70,6 +72,7 @@ Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
         Route::patch('/orders/{order}/confirm', [OrderController::class, 'confirm']);
         Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
         Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
+        Route::post('/images', [ImageController::class, 'createImage']);
     });
 
 });

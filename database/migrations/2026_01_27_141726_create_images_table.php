@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('images', function (Blueprint $table) {
@@ -20,15 +17,12 @@ return new class extends Migration
             $table->unsignedInteger('width')->nullable();
             $table->unsignedInteger('height')->nullable();
             $table->unsignedBigInteger('filesize');
-            $table->morphs('owner');
+            $table->nullableMorphs('owner');
+            $table->nullableMorphs('creator');
             $table->timestamps();
         });
-
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('images');
