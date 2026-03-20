@@ -7,11 +7,6 @@ use Illuminate\Support\Facades\Storage;
 
 class Image extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'disk',
         'name',
@@ -22,13 +17,27 @@ class Image extends Model
         'filesize',
         'owner_type',
         'owner_id',
+        'creator_type',
+        'creator_id',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $appends = ['url', 'filesize_human', 'dimensions'];
+
+    protected $hidden = [
+        'creator_type',
+        'creator_id',
+        'creator',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Image $image) {
+            if (auth()->check()) {
+                $image->creator()->associate(auth()->user());
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -38,34 +47,32 @@ class Image extends Model
         ];
     }
 
-    /**
-     * Get the owning model (polymorphic relation).
-     */
     public function owner()
     {
         return $this->morphTo();
     }
 
-    /**
-     * Get the full URL of the image.
-     */
-    public function url(): string
+    public function creator()
     {
-        return 'todo';
-        // return Storage::disk($this->disk)->temporaryUrl($this->filepath, now()->addMinutes(60));
+        return $this->morphTo();
     }
 
-    /**
-     * Get the full path of the image.
-     */
+    public function getUrlAttribute(): string
+    {
+        if ($this->disk === 'imagekit') {
+            $urlEndpoint = rtrim(config('services.imagekit.url_endpoint'), '/');
+
+            return $urlEndpoint.$this->filepath;
+        }
+
+        return Storage::disk($this->disk)->url($this->filepath);
+    }
+
     public function path(): string
     {
         return Storage::disk($this->disk)->path($this->filepath);
     }
 
-    /**
-     * Get human-readable file size.
-     */
     public function getFilesizeHumanAttribute(): string
     {
         $bytes = $this->filesize;
@@ -78,9 +85,6 @@ class Image extends Model
         return round($bytes, 2).' '.$units[$i];
     }
 
-    /**
-     * Get image dimensions as string.
-     */
     public function getDimensionsAttribute(): ?string
     {
         if ($this->width && $this->height) {
