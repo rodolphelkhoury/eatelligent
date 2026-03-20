@@ -16,6 +16,7 @@ class Order extends Model
         'status',
         'scheduled_time',
         'total_price',
+        'is_paid',
     ];
 
     /**
@@ -28,6 +29,7 @@ class Order extends Model
         return [
             'scheduled_time' => 'datetime',
             'total_price' => 'decimal:2',
+            'is_paid' => 'boolean',
         ];
     }
 

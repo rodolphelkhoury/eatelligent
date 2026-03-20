@@ -33,6 +33,7 @@ Route::middleware([AuthenticateUser::class])->group(function () {
             Route::get('/products/{product}', [ProductController::class, 'show']);
             Route::get('/orders', [OrderController::class, 'index']);
             Route::post('/orders', [OrderController::class, 'store']);
+            Route::post('/orders/{order}/pay', [UserController::class, 'payOrder']);
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);

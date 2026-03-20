@@ -26,6 +26,7 @@ return new class extends Migration
             $table->dateTime('scheduled_time');
 
             $table->decimal('total_price', 12, 2);
+            $table->boolean('is_paid')->default(false);
 
             $table->timestamps();
         });
