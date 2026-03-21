@@ -65,6 +65,9 @@ Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
 
         Route::post('/{product}/attach-categories', [ProductController::class, 'attachCategories']);
         Route::post('/{product}/detach-categories', [ProductController::class, 'detachCategories']);
+
+        Route::post('/{product}/attach-image', [ProductController::class, 'attachImage']);
+        Route::post('/{product}/detach-image', [ProductController::class, 'detachImage']);
     });
 
     Route::prefix('cafeteria-staff')->group(function () {

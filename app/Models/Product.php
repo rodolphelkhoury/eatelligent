@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\HasImages;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, HasImages;
+
+    protected $with = ['image'];
 
     /**
      * The attributes that are mass assignable.
