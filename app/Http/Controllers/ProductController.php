@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Product\AttachCategoriesRequest;
+use App\Http\Requests\Product\AttachImageRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Models\Image;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -86,5 +88,51 @@ class ProductController extends Controller
         $products = $query->with('categories')->get();
 
         return response()->json($products, 200);
+    }
+
+    public function attachImage(AttachImageRequest $request, Product $product)
+    {
+        $image = Image::findOrFail($request->validated()['image_id']);
+
+        if ($image->owner_id !== null && $image->owner_type !== null) {
+            return response()->json([
+                'message' => 'This image is already attached to another owner.',
+            ], 422);
+        }
+
+        if ($product->image()->exists()) {
+            return response()->json([
+                'message' => 'This product already has an image.',
+            ], 422);
+        }
+
+        $image->owner()->associate($product);
+        $image->save();
+
+        return response()->json([
+            'message' => 'Image attached successfully',
+            'product' => $product->refresh(),
+        ], 200);
+    }
+
+    public function detachImage(AttachImageRequest $request, Product $product)
+    {
+        $image = $product->images()
+            ->where('id', $request->validated()['image_id'])
+            ->first();
+
+        if (! $image) {
+            return response()->json([
+                'message' => 'Image not found for this product',
+            ], 404);
+        }
+
+        $image->owner()->dissociate();
+        $image->save();
+
+        return response()->json([
+            'message' => 'Image detached successfully',
+            'product' => $product->refresh(),
+        ], 200);
     }
 }
