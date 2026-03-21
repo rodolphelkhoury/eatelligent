@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasImages;
 use App\Traits\HasOtp;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +11,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasOtp, Notifiable;
+    use HasApiTokens, HasFactory, HasImages, HasOtp, Notifiable;
+
+    protected $with = ['image'];
 
     /**
      * The attributes that are mass assignable.
