@@ -41,6 +41,8 @@ Route::middleware([AuthenticateUser::class])->group(function () {
             Route::post('/orders', [OrderController::class, 'store']);
             Route::post('/orders/{order}/pay', [UserController::class, 'payOrder']);
             Route::post('/images', [ImageController::class, 'createImage']);
+            Route::post('/attach-image', [UserController::class, 'attachImage']);
+            Route::delete('/detach-image', [UserController::class, 'detachImage']);
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);

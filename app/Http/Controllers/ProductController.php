@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Image\AttachImageRequest;
 use App\Http\Requests\Product\AttachCategoriesRequest;
-use App\Http\Requests\Product\AttachImageRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Image;

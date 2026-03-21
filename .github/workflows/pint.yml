@@ -1,4 +1,4 @@
-name: Laravel Pint
+name: Eatelligent CI
 
 on:
   push:
