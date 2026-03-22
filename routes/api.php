@@ -87,4 +87,7 @@ Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
 
 });
 
-Route::middleware([AuthenticateAdmin::class])->group(function () {});
+Route::middleware([AuthenticateAdmin::class])->group(function () {
+    Route::post('/create-cafeteria-staff', [AdminController::class, 'createCafeteriaStaff']);
+    Route::put('/update-cafeteria-staff-password', [AdminController::class, 'updateCafeteriaStaffPassword']);
+});
