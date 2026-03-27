@@ -23,8 +23,8 @@ class CheckoutWalletRequest extends FormRequest
     {
         return [
             'amount' => 'required|numeric|min:1|max:500',
-            'success_url' => 'required|url',
-            'cancel_url' => 'required|url',
+            'success_url' => 'required|string',
+            'cancel_url' => 'required|string',
         ];
     }
 
