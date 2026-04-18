@@ -29,6 +29,10 @@ return new class extends Migration
             $table->decimal('water_percent', 5, 2)->nullable();
             $table->decimal('bone_mass_kg', 5, 2)->nullable();
 
+            $table->string('goal');
+
+            $table->string('activity_level');
+
             $table->dateTime('measured_at');
             $table->timestamps();
         });

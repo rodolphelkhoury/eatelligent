@@ -21,6 +21,8 @@ class BodyComposition extends Model
         'visceral_fat_level',
         'water_percent',
         'bone_mass_kg',
+        'goal',
+        'activity_level',
         'measured_at',
     ];
 

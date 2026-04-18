@@ -73,4 +73,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    public function nutritionGoal()
+    {
+        return $this->hasOne(UserNutritionGoal::class)->latestOfMany();
+    }
 }
