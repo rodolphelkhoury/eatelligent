@@ -51,6 +51,47 @@ class CafeteriaStaffOrderStatusTest extends TestCase
         ]);
     }
 
+    public function test_ready_for_pickup_success(): void
+    {
+        $user = User::factory()->create();
+        $p = Product::factory()->create(['price' => 2.50, 'stock' => 5, 'is_active' => true]);
+
+        $order = Order::create([
+            'user_id' => $user->id,
+            'status' => OrderStatus::Confirmed->value,
+            'scheduled_time' => '2026-03-07 12:00:00',
+            'total_price' => 5.00,
+        ]);
+
+        OrderItem::create(['order_id' => $order->id, 'product_id' => $p->id, 'quantity' => 2, 'unit_price' => $p->price]);
+
+        $response = $this->patchJson('/api/cafeteria-staff/orders/'.$order->id.'/ready-for-pickup');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['order' => ['id', 'user_id', 'status', 'scheduled_time', 'total_price', 'order_items']]);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::ReadyForPickup->value,
+        ]);
+    }
+
+    public function test_ready_for_pickup_invalid_status(): void
+    {
+        $user = User::factory()->create();
+
+        $order = Order::create([
+            'user_id' => $user->id,
+            'status' => OrderStatus::Pending->value,
+            'scheduled_time' => '2026-03-07 12:00:00',
+            'total_price' => 5.00,
+        ]);
+
+        $response = $this->patchJson('/api/cafeteria-staff/orders/'.$order->id.'/ready-for-pickup');
+
+        $response->assertStatus(400)->assertJsonStructure(['message']);
+    }
+
     public function test_confirm_order_invalid_status(): void
     {
         $user = User::factory()->create();

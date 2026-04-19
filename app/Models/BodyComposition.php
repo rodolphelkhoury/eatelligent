@@ -6,47 +6,37 @@ use Illuminate\Database\Eloquent\Model;
 
 class BodyComposition extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'weight_kg',
         'height_cm',
-        'body_fat_percent',
-        'muscle_mass_kg',
+        'age',
+        'gender',
+        'activity_level',
+        'goal',
         'bmi',
-        'visceral_fat_level',
-        'water_percent',
-        'bone_mass_kg',
-        'measured_at',
+        'bmr',
+        'tdee',
+        'daily_calories',
+        'daily_protein_g',
+        'daily_carbs_g',
+        'daily_fat_g',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'weight_kg' => 'decimal:2',
             'height_cm' => 'decimal:2',
-            'body_fat_percent' => 'decimal:2',
-            'muscle_mass_kg' => 'decimal:2',
             'bmi' => 'decimal:2',
-            'visceral_fat_level' => 'decimal:2',
-            'water_percent' => 'decimal:2',
-            'bone_mass_kg' => 'decimal:2',
-            'measured_at' => 'datetime',
+            'bmr' => 'decimal:2',
+            'tdee' => 'decimal:2',
+            'daily_protein_g' => 'decimal:2',
+            'daily_carbs_g' => 'decimal:2',
+            'daily_fat_g' => 'decimal:2',
         ];
     }
 
-    /**
-     * Get the user that owns the body composition.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
