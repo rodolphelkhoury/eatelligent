@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             CafeteriaStaffSeeder::class,
             VerifiedUserSeeder::class,
+            ProductsSeeder::class,
         ]);
     }
 }

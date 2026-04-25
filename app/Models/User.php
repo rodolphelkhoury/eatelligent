@@ -73,4 +73,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Get the most recent body composition profile.
+     */
+    public function latestProfile()
+    {
+        return $this->hasOne(BodyComposition::class)->latestOfMany();
+    }
 }

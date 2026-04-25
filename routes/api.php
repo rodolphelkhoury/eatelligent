@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\NutritionController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
@@ -43,6 +44,10 @@ Route::middleware([AuthenticateUser::class])->group(function () {
             Route::post('/images', [ImageController::class, 'createImage']);
             Route::post('/attach-image', [UserController::class, 'attachImage']);
             Route::delete('/detach-image', [UserController::class, 'detachImage']);
+
+            Route::post('/body-composition', [NutritionController::class, 'storeProfile']);
+            Route::get('/progress', [NutritionController::class, 'progress']);
+            Route::get('/recommend', [NutritionController::class, 'recommend']);
         });
 
         Route::post('/wallet/checkout', [WalletController::class, 'checkout']);
@@ -80,11 +85,11 @@ Route::middleware([AuthenticateCafeteriaStaff::class])->group(function () {
     Route::prefix('cafeteria-staff')->group(function () {
         Route::get('/orders', [OrderController::class, 'staffIndex']);
         Route::patch('/orders/{order}/confirm', [OrderController::class, 'confirm']);
+        Route::patch('/orders/{order}/ready-for-pickup', [OrderController::class, 'readyForPickup']);
         Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
         Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('/images', [ImageController::class, 'createImage']);
     });
-
 });
 
 Route::middleware([AuthenticateAdmin::class])->group(function () {

@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('body_compositions', function (Blueprint $table) {
@@ -20,23 +17,30 @@ return new class extends Migration
 
             $table->decimal('weight_kg', 5, 2);
             $table->decimal('height_cm', 5, 2);
-            $table->decimal('body_fat_percent', 5, 2);
+            $table->unsignedTinyInteger('age');
+            $table->enum('gender', ['male', 'female']);
+            $table->enum('activity_level', [
+                'no_activity',  // little or no exercise
+                'light',        // 1–3x/week
+                'moderate',     // 3–5x/week
+                'active',       // 6–7x/week
+                'very_active',  // twice/day, intense
+            ]);
+            $table->enum('goal', ['lose_weight', 'maintain', 'gain_muscle']);
 
-            $table->decimal('muscle_mass_kg', 5, 2);
-            $table->decimal('bmi', 4, 2);
+            $table->decimal('bmi', 5, 2);
+            $table->decimal('bmr', 8, 2);   // Basal Metabolic Rate (kcal/day)
+            $table->decimal('tdee', 8, 2);  // Total Daily Energy Expenditure
 
-            $table->decimal('visceral_fat_level', 4, 2)->nullable();
-            $table->decimal('water_percent', 5, 2)->nullable();
-            $table->decimal('bone_mass_kg', 5, 2)->nullable();
+            $table->unsignedInteger('daily_calories');
+            $table->decimal('daily_protein_g', 6, 2);
+            $table->decimal('daily_carbs_g', 6, 2);
+            $table->decimal('daily_fat_g', 6, 2);
 
-            $table->dateTime('measured_at');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('body_compositions');

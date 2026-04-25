@@ -15,10 +15,8 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         $user = $request->user();
-
         $items = $request->input('items');
         $scheduledTime = $request->input('scheduled_time');
-
         $order = null;
 
         DB::beginTransaction();
@@ -32,6 +30,7 @@ class OrderController extends Controller
             // Verify stock availability and compute total
             foreach ($items as $it) {
                 $product = $products->get($it['product_id']);
+
                 if (! $product || ! $product->is_active) {
                     throw new \Exception('Product not available: '.$it['product_id']);
                 }
@@ -71,7 +70,29 @@ class OrderController extends Controller
 
             $order->load('orderItems.product');
 
-            return response()->json(['order' => $order], 201);
+            // Compute macros consumed in this order
+            $macrosThisOrder = [
+                'calories' => 0,
+                'protein_g' => 0.0,
+                'carbs_g' => 0.0,
+                'fat_g' => 0.0,
+            ];
+
+            foreach ($order->orderItems as $item) {
+                $p = $item->product;
+                $qty = $item->quantity;
+
+                $macrosThisOrder['calories'] += $p->calories * $qty;
+                $macrosThisOrder['protein_g'] += (float) $p->protein_g * $qty;
+                $macrosThisOrder['carbs_g'] += (float) $p->carbs_g * $qty;
+                $macrosThisOrder['fat_g'] += (float) $p->fat_g * $qty;
+            }
+
+            return response()->json([
+                'order' => $order,
+                'macros_this_order' => $macrosThisOrder,
+            ], 201);
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -90,9 +111,7 @@ class OrderController extends Controller
             $query->where('status', $status);
         }
 
-        $orders = $query
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $orders = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json($orders);
     }
@@ -105,9 +124,7 @@ class OrderController extends Controller
             $query->where('status', $status);
         }
 
-        $orders = $query
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $orders = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json($orders);
     }
@@ -141,6 +158,24 @@ class OrderController extends Controller
         }
 
         $order->status = OrderStatus::Completed->value;
+        $order->save();
+
+        $order->load('orderItems.product');
+
+        return response()->json(['order' => $order]);
+    }
+
+    public function readyForPickup(Order $order)
+    {
+        if ($order->status === OrderStatus::ReadyForPickup->value) {
+            return response()->json(['message' => 'Order already marked ready for pickup.'], 400);
+        }
+
+        if ($order->status !== OrderStatus::Confirmed->value) {
+            return response()->json(['message' => 'Only confirmed orders can be marked ready for pickup.'], 400);
+        }
+
+        $order->status = OrderStatus::ReadyForPickup->value;
         $order->save();
 
         $order->load('orderItems.product');
