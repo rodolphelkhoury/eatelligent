@@ -1,60 +1,120 @@
-<!-- ./vendor/bin/pint -->
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Eatelligent
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Eatelligent is a Laravel-based nutrition, product and ordering platform that provides user accounts, product/catalog management, ordering, payments, wallets and integrations (email/WhatsApp). This repository contains the application backend and related services.
 
-## About Laravel
+**Tech stack:** PHP 8.2, Laravel 12, MySQL/SQLite, Stripe for payments, Sanctum for API authentication.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Key areas of the codebase:**
+- `app/Models` — Eloquent models (User, Product, Order, Wallet, BodyComposition, etc.)
+- `app/Actions` — domain actions used across the app
+- `app/Integrations` — external integrations (WhatsApp, mail)
+- `database/migrations`, `database/factories`, `database/seeders`
+- `routes/api.php` — API routes
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Note:** This README focuses on project-specific setup and usage. For general Laravel concepts, see the official docs at https://laravel.com/docs.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Quick Start
 
-## Learning Laravel
+1. Install dependencies:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+composer install
+npm install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+2. Copy the example environment and set environment variables:
 
-## Laravel Sponsors
+Windows:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```powershell
+copy .env.example .env
+```
 
-### Premium Partners
+Unix/macOS:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+cp .env.example .env
+```
+
+3. Generate app key and run migrations:
+
+```bash
+php artisan key:generate
+php artisan migrate --seed
+```
+
+4. Start the app (development):
+
+```bash
+composer run dev
+```
+
+Or run the provided setup script (installs deps, copies env, migrates):
+
+```bash
+composer run setup
+```
+
+## Environment variables
+
+Populate at minimum the following in your `.env`:
+
+- `APP_NAME`, `APP_URL`, `APP_ENV`
+- `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`
+- `STRIPE_KEY`, `STRIPE_SECRET` (for payments)
+- Any WhatsApp integration keys configured in `app/Integrations/WhatsApp`
+
+Refer to `.env.example` for full list of variables.
+
+## Running Tests
+
+Run the test suite with PHPUnit via the composer script:
+
+```bash
+composer run test
+```
+
+## Helpful Composer scripts
+
+- `composer run setup` — installs dependencies, copies `.env.example`, generates key, runs migrations and builds front-end assets (see `composer.json` scripts).
+- `composer run dev` — starts development servers (artisan serve, queue listener, etc.) via the dev script.
+- `composer run test` — runs automated tests.
+
+## Database
+
+The project supports the typical Laravel database drivers (MySQL, Postgres, SQLite). For quick local development you can use SQLite by creating `database/database.sqlite` and setting `DB_CONNECTION=sqlite` in `.env`.
+
+## Seeding data
+
+Seeders and factories live in `database/seeders` and `database/factories`. To seed after migrating:
+
+```bash
+php artisan db:seed
+```
+
+Or run migrations with seeds enabled:
+
+```bash
+php artisan migrate --seed
+```
+
+## Common tasks
+
+- Run the queue worker: `php artisan queue:work`
+- Rebuild autoload files: `composer dump-autoload`
+- Run Pint code style: `./vendor/bin/pint` (or `vendor\bin\pint` on Windows)
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Fork the repository and create a feature branch.
+2. Ensure tests pass and code is formatted.
+3. Submit a PR describing your changes.
 
-## Code of Conduct
+## Security
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+If you find a security issue, please open an issue or contact a repo administrator privately.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is available under the MIT license.
