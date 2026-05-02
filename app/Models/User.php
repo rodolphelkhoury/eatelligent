@@ -13,7 +13,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasImages, HasOtp, Notifiable;
 
-    protected $with = ['image'];
+    protected $with = ['image', 'latestProfile'];
 
     /**
      * The attributes that are mass assignable.

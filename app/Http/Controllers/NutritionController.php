@@ -103,63 +103,134 @@ class NutritionController extends Controller
         );
     }
 
+    /**
+     * Parse the model's pipe-delimited response into structured recommendations.
+     *
+     * Expected format (one line per item):
+     *   ID|REASON
+     *   3|High in protein to help you hit your remaining 40g goal.
+     */
+    private function parsePipeResponse(string $content, $products): array
+    {
+        $validated = [];
+
+        foreach (explode("\n", $content) as $line) {
+            $line = trim($line);
+
+            // Skip empty lines or header-like lines
+            if ($line === '' || stripos($line, 'ID|') === 0) {
+                continue;
+            }
+
+            $parts = explode('|', $line, 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+
+            [$rawId, $reason] = $parts;
+            $id = (int) trim($rawId);
+
+            if ($id <= 0) {
+                continue;
+            }
+
+            $product = $products->firstWhere('id', $id);
+            if (! $product) {
+                continue;
+            }
+
+            $validated[] = array_merge($product->toArray(), [
+                'reason' => trim($reason),
+            ]);
+        }
+
+        return $validated;
+    }
+
     private function getAiRecommendations($userName, $profile, $eaten, $remaining, $products, $eatenProductNames): array
     {
         $productLines = $products->map(
-            fn ($p) => "  [ID:{$p->id}] {$p->name}: {$p->calories}kcal | {$p->protein_g}g protein | {$p->carbs_g}g carbs | {$p->fat_g}g fat | \${$p->price}"
+            fn ($p) => "  {$p->id}|{$p->name}|{$p->calories}kcal|{$p->protein_g}g protein|{$p->carbs_g}g carbs|{$p->fat_g}g fat|\${$p->price}"
         )->implode("\n");
 
         $alreadyEatenNote = $eatenProductNames->isNotEmpty()
-            ? 'The user already had the following items today: '.$eatenProductNames->implode(', ').'. You may still recommend them if they are the best nutritional fit, but prefer suggesting different items for variety.'
+            ? 'The user already had: '.$eatenProductNames->implode(', ').'. Prefer variety, but repeating is allowed if it is the best fit.'
             : '';
 
         $prompt = <<<PROMPT
 You are a nutrition assistant for a university cafeteria app called Eatelligent.
 
-User: {$userName}
+USER PROFILE
+Name: {$userName}
 Goal: {$profile->goal}
 BMI: {$profile->bmi} | BMR: {$profile->bmr} kcal | TDEE: {$profile->tdee} kcal
 
-Daily targets: {$profile->daily_calories} kcal | {$profile->daily_protein_g}g protein | {$profile->daily_carbs_g}g carbs | {$profile->daily_fat_g}g fat
-Already eaten today: {$eaten['calories']} kcal | {$eaten['protein_g']}g protein | {$eaten['carbs_g']}g carbs | {$eaten['fat_g']}g fat
-Still needed: {$remaining['calories']} kcal | {$remaining['protein_g']}g protein | {$remaining['carbs_g']}g carbs | {$remaining['fat_g']}g fat
+DAILY TARGETS
+Calories: {$profile->daily_calories} kcal | Protein: {$profile->daily_protein_g}g | Carbs: {$profile->daily_carbs_g}g | Fat: {$profile->daily_fat_g}g
 
-Available cafeteria items:
+ALREADY EATEN TODAY
+Calories: {$eaten['calories']} kcal | Protein: {$eaten['protein_g']}g | Carbs: {$eaten['carbs_g']}g | Fat: {$eaten['fat_g']}g
+
+STILL NEEDED
+Calories: {$remaining['calories']} kcal | Protein: {$remaining['protein_g']}g | Carbs: {$remaining['carbs_g']}g | Fat: {$remaining['fat_g']}g
+
+AVAILABLE MENU (format: ID|Name|Calories|Protein|Carbs|Fat|Price)
 {$productLines}
 
 {$alreadyEatenNote}
-Based on what this user still needs today, recommend 1 to 5 items from the cafeteria menu above.
-If the user has already met all their goals, recommend one light option and note they have met their goals.
 
-Respond ONLY with a valid JSON array. No markdown, no explanation outside the array.
-Each element must have exactly these fields:
-  "id"     — integer, the product ID from the list above
-  "name"   — string, the product name
-  "reason" — string, a short friendly sentence explaining why this item helps the user today
+TASK
+Pick 1 to 5 items from the menu above that best cover what the user still needs today.
+If the user has already met all their goals, pick one light option and say so in the reason.
 
-Example format:
-[
-  {"id": 3, "name": "Grilled Chicken", "reason": "High in protein to help you hit your remaining 40g protein goal."}
-]
+RESPONSE FORMAT — output only these lines, nothing else:
+ID|reason sentence
+ID|reason sentence
+
+Rules:
+- ID must be the exact numeric ID from the menu
+- reason must be one short friendly sentence (no pipe character inside it)
+- no headers, no bullet points, no extra text, no blank lines between items
+
+Example output:
+3|High in protein to help you hit your remaining 40g protein goal.
+7|Low in calories and keeps your fat intake in check.
 PROMPT;
 
-        $apiKey = env('GROQ_API_KEY');
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$apiKey,
+        $groqResponse = Http::withHeaders([
+            'Authorization' => 'Bearer '.env('GROQ_API_KEY'),
             'Content-Type' => 'application/json',
         ])->timeout(20)->post('https://api.groq.com/openai/v1/chat/completions', [
             'model' => 'llama-3.3-70b-versatile',
-            'max_tokens' => 512,
+            'max_tokens' => 256,
             'messages' => [
                 ['role' => 'user', 'content' => $prompt],
             ],
         ]);
 
-        info($response->body());
+        info($groqResponse->body());
 
-        if ($response->failed()) {
-            throw new \Exception('AI service error: '.$response->status().' - '.$response->body());
+        if ($groqResponse->failed()) {
+            Log::warning('Groq request failed (status '.$groqResponse->status().'), falling back to OpenRouter.');
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.env('OPEN_ROUTER_KEY'),
+                'Content-Type' => 'application/json',
+            ])->timeout(20)->post('https://openrouter.ai/api/v1/chat/completions', [
+                'model' => 'meta-llama/llama-3.3-70b-instruct',
+                'max_tokens' => 256,
+                'messages' => [
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+
+            info($response->body());
+
+            if ($response->failed()) {
+                throw new \Exception('AI service error (OpenRouter fallback): '.$response->status().' - '.$response->body());
+            }
+        } else {
+            $response = $groqResponse;
         }
 
         $content = null;
@@ -183,54 +254,11 @@ PROMPT;
 
         $content = trim((string) $content);
 
-        $decoded = json_decode($content, true);
+        $validated = $this->parsePipeResponse($content, $products);
 
-        if (! is_array($decoded)) {
-            if (preg_match('/(\[.*\])/s', $content, $m)) {
-                $maybe = $m[1];
-                $maybeDecoded = json_decode($maybe, true);
-                if (is_array($maybeDecoded)) {
-                    $decoded = $maybeDecoded;
-                    $content = $maybe;
-                }
-            }
-        }
-
-        if (! is_array($decoded)) {
-            $start = strpos($content, '[');
-            $end = strrpos($content, ']');
-            if ($start !== false && $end !== false && $end > $start) {
-                $maybe = substr($content, $start, $end - $start + 1);
-                $maybeDecoded = json_decode($maybe, true);
-                if (is_array($maybeDecoded)) {
-                    $decoded = $maybeDecoded;
-                    $content = $maybe;
-                }
-            }
-        }
-
-        if (! is_array($decoded)) {
-            Log::info('AI recommendation parsing failed. Raw content: '.substr($content, 0, 2000));
+        if (empty($validated)) {
+            Log::info('AI recommendation parsing returned no valid items. Raw content: '.substr($content, 0, 2000));
             throw new \Exception('AI returned an unexpected response format.');
-        }
-
-        $validated = [];
-        foreach ($decoded as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-            if (! isset($item['id'], $item['reason'])) {
-                continue;
-            }
-
-            $product = $products->firstWhere('id', (int) $item['id']);
-            if (! $product) {
-                continue;
-            }
-
-            $validated[] = array_merge($product->toArray(), [
-                'reason' => (string) $item['reason'],
-            ]);
         }
 
         return $validated;
