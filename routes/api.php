@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CafeteriaStaffController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\NfcController;
 use App\Http\Controllers\NutritionController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -96,3 +97,5 @@ Route::middleware([AuthenticateAdmin::class])->group(function () {
     Route::post('/create-cafeteria-staff', [AdminController::class, 'createCafeteriaStaff']);
     Route::put('/update-cafeteria-staff-password', [AdminController::class, 'updateCafeteriaStaffPassword']);
 });
+
+Route::post('/nfc', [NfcController::class, 'handle']);

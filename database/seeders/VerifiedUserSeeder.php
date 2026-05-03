@@ -14,7 +14,7 @@ class VerifiedUserSeeder extends Seeder
     {
         DB::transaction(function () {
             User::updateOrCreate(
-                ['email' => 'rodolph.khoury@net.usj.edu.lb'],
+                ['email' => 'rodolph.khoury@net.usj.edu.lb', 'card_id' => 'FD:6B:13:05'],
                 [
                     'name' => 'Rodolph Khoury',
                     'password' => Hash::make('rodolph1234'),
