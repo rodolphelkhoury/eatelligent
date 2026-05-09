@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\LoginAdminRequest;
 use App\Http\Requests\Auth\RegisterAdminRequest;
 use App\Models\Admin;
 use App\Models\CafeteriaStaff;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -83,5 +84,25 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Password updated successfully',
         ], 200);
+    }
+
+    /**
+     * Get all users
+     */
+    public function getAllUsers()
+    {
+        $users = User::all();
+
+        return response()->json($users, 200);
+    }
+
+    /**
+     * Get all cafeteria staff
+     */
+    public function getAllCafeteriaStaff()
+    {
+        $cafeteriaStaff = CafeteriaStaff::all();
+
+        return response()->json($cafeteriaStaff, 200);
     }
 }
