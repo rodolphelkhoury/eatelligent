@@ -7,6 +7,8 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderPaidMail;
 
 class PayOrder
 {
@@ -59,6 +61,10 @@ class PayOrder
             // Mark order as paid
             $order->is_paid = true;
             $order->save();
+
+            if (! empty($user->email)) {
+                Mail::to($user->email)->send(new OrderPaidMail($order->id, $amount));
+            }
 
             return $transaction;
         });

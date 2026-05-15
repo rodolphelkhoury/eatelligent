@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    protected $with = ['user'];
+    
     /**
      * The attributes that are mass assignable.
      *

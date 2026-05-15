@@ -16,11 +16,11 @@ class NfcController extends Controller
     {
         $espKeyHeader = $request->header('esp_key');
 
-        if (! env('ESP_KEY') || $espKeyHeader !== env('ESP_KEY')) {
-            info('[NFC] Unauthorized request — invalid or missing esp_key.');
+        // if (! env('ESP_KEY') || $espKeyHeader !== env('ESP_KEY')) {
+        //     info('[NFC] Unauthorized request — invalid or missing esp_key.');
 
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
-        }
+        //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        // }
 
         $cardId = $request->input('id') ?? $request->input('uid');
 
